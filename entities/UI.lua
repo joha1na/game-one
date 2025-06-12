@@ -1,18 +1,16 @@
 local UI = {}
-UI.__index = UI
-
 local Highscore = require('highscore')
-
--- UI Konstanten
-local UI_PADDING = 10
-local UI_LINE_HEIGHT = 20
-local UI_START_Y = 10
-local UI_TITLE_SIZE = 32
-local UI_TEXT_SIZE = 16
-local UI_SUBTEXT_SIZE = 12
+local UIConstants = require('constants.UI')
 
 function UI.new()
-    local self = setmetatable({}, UI)
+    local self = setmetatable({}, { __index = UI })
+    
+    -- Cache fonts
+    self.fonts = {
+        title = love.graphics.newFont(UIConstants.TITLE_SIZE),
+        text = love.graphics.newFont(UIConstants.TEXT_SIZE),
+        subtext = love.graphics.newFont(UIConstants.SUBTEXT_SIZE)
+    }
     
     -- Button-Konfiguration
     local buttonWidth = 200
@@ -60,18 +58,18 @@ function UI:drawStartScreen()
     love.graphics.setColor(1, 1, 1)
     
     -- Zeichne den Titel
-    love.graphics.setFont(love.graphics.newFont(UI_TITLE_SIZE))
+    love.graphics.setFont(self.fonts.title)
     love.graphics.printf("Game One", 
         0, love.graphics.getHeight()/4, 
         love.graphics.getWidth(), "center")
     
     -- Zeichne den Highscore und die Herausforderung
-    love.graphics.setFont(love.graphics.newFont(UI_TEXT_SIZE))
+    love.graphics.setFont(self.fonts.text)
     love.graphics.printf("Bisheriger Highscore: " .. Highscore.getBestScore(), 
-        0, love.graphics.getHeight()/4 + UI_LINE_HEIGHT * 2,
+        0, love.graphics.getHeight()/4 + UIConstants.LINE_HEIGHT * 2,
         love.graphics.getWidth(), "center")
     love.graphics.printf("Wirst du den Highscore knacken?", 
-        0, love.graphics.getHeight()/4 + UI_LINE_HEIGHT * 3,
+        0, love.graphics.getHeight()/4 + UIConstants.LINE_HEIGHT * 3,
         love.graphics.getWidth(), "center")
     
     -- Zeichne den Start-Button
@@ -80,11 +78,12 @@ end
 
 function UI:drawPauseScreen()
     love.graphics.setColor(1, 1, 1)
-    love.graphics.setFont(love.graphics.newFont(UI_TITLE_SIZE))
-    love.graphics.printf("Kurz durchatmen",
-        0, love.graphics.getHeight()/4,
+    love.graphics.setFont(self.fonts.title)
+    love.graphics.printf("Kurz durchatmen", 
+        0, love.graphics.getHeight()/4, 
         love.graphics.getWidth(), "center")
 
+    love.graphics.setFont(self.fonts.text)
     self:drawButton(self.backButton)
 end
 
@@ -92,22 +91,24 @@ function UI:drawGameOverScreen()
     -- Debug-Ausgaben
     local bestScore = Highscore.getBestScore()
     local previousBestScore = gameState.previousBestScore or 0
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.setFont(love.graphics.newFont(UI_SUBTEXT_SIZE))
-    love.graphics.printf("Debug - Aktueller Score: " .. score, 10, 10, 300, "left")
-    love.graphics.printf("Debug - Bester Score: " .. bestScore, 10, 30, 300, "left")
-    love.graphics.printf("Debug - Vorheriger Bestwert: " .. previousBestScore, 10, 50, 300, "left")
-    love.graphics.printf("Debug - Ist neuer Highscore: " .. tostring(score > previousBestScore), 10, 70, 300, "left")
     
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.setFont(self.fonts.subtext)
+    love.graphics.printf("Debug - Aktueller Score: " .. score, UIConstants.PADDING, UIConstants.START_Y, 300, "left")
+    love.graphics.printf("Debug - Bester Score: " .. bestScore, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT, 300, "left")
+    love.graphics.printf("Debug - Vorheriger Bester Score: " .. previousBestScore, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 2, 300, "left")
+    love.graphics.printf("Debug - Ist neuer Highscore: " .. tostring(score > previousBestScore), UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 3, 300, "left")
+    
+    -- Game Over Text
     love.graphics.setColor(1, 0, 0)
-    love.graphics.setFont(love.graphics.newFont(UI_TITLE_SIZE))
+    love.graphics.setFont(self.fonts.title)
     love.graphics.printf("GAME OVER", 
         0, love.graphics.getHeight()/4, 
         love.graphics.getWidth(), "center")
     
     -- Zeige den aktuellen Score
     love.graphics.setColor(1, 1, 1)
-    love.graphics.setFont(love.graphics.newFont(UI_TEXT_SIZE))
+    love.graphics.setFont(self.fonts.text)
     love.graphics.printf("Dein Score: " .. score,
         0, love.graphics.getHeight()/4 + 50,
         love.graphics.getWidth(), "center")
@@ -138,7 +139,7 @@ function UI:drawGameOverScreen()
             0, love.graphics.getHeight()/4 + 150 + (i-1)*30,
             love.graphics.getWidth(), "center")
     end
-
+    
     self.startButton.text = "Neustart"
     self.startButton.y = love.graphics.getHeight() - love.graphics.getHeight() / 4
     self:drawButton(self.startButton)
