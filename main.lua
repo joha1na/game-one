@@ -4,6 +4,11 @@ local Enemy = require('entities.Enemy')
 local UI = require('entities.UI')
 local Highscore = require('highscore')
 
+-- UI Konstanten
+local UI_PADDING = 10
+local UI_LINE_HEIGHT = 20
+local UI_START_Y = 10
+
 -- Diese Funktion prüft, ob zwei Rechtecke sich überlappen
 function checkCollision(rect1, rect2)
     return rect1.x < rect2.x + rect2.width and
@@ -33,6 +38,9 @@ function love.load()
     
     -- Highscores laden
     Highscore.load()
+    
+    -- Cache für den Highscore
+    currentHighscore = Highscore.getBestScore()
 end
 
 -- Diese Funktion wird in jedem Frame aufgerufen
@@ -91,6 +99,8 @@ function love.update(dt)
                 gameState.currentState = "gameOver"
                 -- Speichere den Score, wenn das Spiel vorbei ist
                 Highscore.addScore(score)
+                -- Aktualisiere den Highscore-Cache
+                currentHighscore = Highscore.getBestScore()
             end
         end
     end
@@ -134,20 +144,20 @@ function love.draw()
     love.graphics.setColor(1, 1, 1)
     
     -- Zeichne die aktuelle Position als Text (für Debugging)
-    love.graphics.print('Position: ' .. math.floor(player.x), 10, 10)
-    love.graphics.print('Geschosse: ' .. #bullets, 10, 30)
-    love.graphics.print('Feind Position X: ' .. math.floor(enemy.x), 10, 50)
-    love.graphics.print('Feind Position Y: ' .. math.floor(enemy.y), 10, 70)
-    love.graphics.print('Feind Leben: ' .. enemy.health, 10, 90)
-    love.graphics.print('Punkte: ' .. score, 10, 110)
-    love.graphics.print('Spieler*in Leben: ' .. player.health, 10, 130)
+    love.graphics.print('Position: ' .. math.floor(player.x), UI_PADDING, UI_START_Y)
+    love.graphics.print('Geschosse: ' .. #bullets, UI_PADDING, UI_START_Y + UI_LINE_HEIGHT)
+    love.graphics.print('Feind Position X: ' .. math.floor(enemy.x), UI_PADDING, UI_START_Y + UI_LINE_HEIGHT * 2)
+    love.graphics.print('Feind Position Y: ' .. math.floor(enemy.y), UI_PADDING, UI_START_Y + UI_LINE_HEIGHT * 3)
+    love.graphics.print('Feind Leben: ' .. enemy.health, UI_PADDING, UI_START_Y + UI_LINE_HEIGHT * 4)
+    love.graphics.print('Punkte: ' .. score, UI_PADDING, UI_START_Y + UI_LINE_HEIGHT * 5)
+    love.graphics.print('Spieler*in Leben: ' .. player.health, UI_PADDING, UI_START_Y + UI_LINE_HEIGHT * 6)
     
     -- Zeige den aktuellen Highscore an
-    love.graphics.print('Highscore: ' .. Highscore.getBestScore(), 10, 150)
+    love.graphics.print('Bisheriger Highscore: ' .. currentHighscore, UI_PADDING, UI_START_Y + UI_LINE_HEIGHT * 7)
     
     -- Zeige Unverwundbarkeitszeit an
     if player.invincible then
-        love.graphics.print('Unverwundbar: ' .. string.format("%.1f", player.invincibleTime), 10, 170)
+        love.graphics.print('Unverwundbar: ' .. string.format("%.1f", player.invincibleTime), UI_PADDING, UI_START_Y + UI_LINE_HEIGHT * 8)
     end
 end
 
@@ -174,8 +184,8 @@ end
 -- - Game-Over-Bildschirm mit Start-Button -> done
 -- - Highscore implementieren -> done
 -- - Highscore im Game Over Bildschirm anzeigen -> done
+-- - Highscore auf der Spielseite anzeigen -> done
 -- - Highscore auf der Startseite anzeigen
--- - Highscore auf der Spielseite anzeigen
 -- - Spiel beenden
 -- - Spiel speichern
 -- - Spiel laden
