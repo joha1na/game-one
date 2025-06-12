@@ -3,11 +3,7 @@ local Player = require('entities.Player')
 local Enemy = require('entities.Enemy')
 local UI = require('entities.UI')
 local Highscore = require('highscore')
-
--- UI Konstanten
-local UI_PADDING = 10
-local UI_LINE_HEIGHT = 20
-local UI_START_Y = 10
+local UIConstants = require('constants.UI')
 
 -- Cache für den Highscore
 local currentHighscore = 0
@@ -146,21 +142,24 @@ function love.draw()
     -- Setze die Farbe zurück auf Weiß für den Text
     love.graphics.setColor(1, 1, 1)
     
+    -- Setze die Schriftgröße für Debug-Texte
+    love.graphics.setFont(ui.fonts.subtext)
+    
     -- Zeichne die aktuelle Position als Text (für Debugging)
-    love.graphics.print('Position: ' .. math.floor(player.x), UI_PADDING, UI_START_Y)
-    love.graphics.print('Geschosse: ' .. #bullets, UI_PADDING, UI_START_Y + UI_LINE_HEIGHT)
-    love.graphics.print('Feind Position X: ' .. math.floor(enemy.x), UI_PADDING, UI_START_Y + UI_LINE_HEIGHT * 2)
-    love.graphics.print('Feind Position Y: ' .. math.floor(enemy.y), UI_PADDING, UI_START_Y + UI_LINE_HEIGHT * 3)
-    love.graphics.print('Feind Leben: ' .. enemy.health, UI_PADDING, UI_START_Y + UI_LINE_HEIGHT * 4)
-    love.graphics.print('Punkte: ' .. score, UI_PADDING, UI_START_Y + UI_LINE_HEIGHT * 5)
-    love.graphics.print('Spieler*in Leben: ' .. player.health, UI_PADDING, UI_START_Y + UI_LINE_HEIGHT * 6)
+    love.graphics.print('Position: ' .. math.floor(player.x), UIConstants.PADDING, UIConstants.START_Y)
+    love.graphics.print('Geschosse: ' .. #bullets, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT)
+    love.graphics.print('Feind Position X: ' .. math.floor(enemy.x), UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 2)
+    love.graphics.print('Feind Position Y: ' .. math.floor(enemy.y), UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 3)
+    love.graphics.print('Feind Leben: ' .. enemy.health, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 4)
+    love.graphics.print('Punkte: ' .. score, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 5)
+    love.graphics.print('Spieler*in Leben: ' .. player.health, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 6)
     
     -- Zeige den aktuellen Highscore an
-    love.graphics.print('Bisheriger Highscore: ' .. currentHighscore, UI_PADDING, UI_START_Y + UI_LINE_HEIGHT * 7)
+    love.graphics.print('Bisheriger Highscore: ' .. currentHighscore, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 7)
     
     -- Zeige Unverwundbarkeitszeit an
     if player.invincible then
-        love.graphics.print('Unverwundbar: ' .. string.format("%.1f", player.invincibleTime), UI_PADDING, UI_START_Y + UI_LINE_HEIGHT * 8)
+        love.graphics.print('Unverwundbar: ' .. string.format("%.1f", player.invincibleTime), UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 8)
     end
 end
 
@@ -188,7 +187,7 @@ end
 -- - Highscore implementieren -> done
 -- - Highscore im Game Over Bildschirm anzeigen -> done
 -- - Highscore auf der Spielseite anzeigen -> done
--- - Highscore auf der Startseite anzeigen
+-- - Highscore auf der Startseite anzeigen -> done
 -- - Spiel beenden
 -- - Spiel speichern
 -- - Spiel laden
@@ -208,8 +207,8 @@ end
 -- - Code-Struktur verbessern
 -- - Dokumentation erstellen
 -- - Unit-Tests erstellen? (in Lua nicht üblich?)
--- - Auf GitHub hochladen
+-- - Auf GitHub hochladen -> done
 -- - Veröffentlichen auf itch.io prüfen
 -- - Release-Notes löschen
--- - Mit Branches arbeiten?
+-- - Mit Branches arbeiten -> done
 -- - README.md anpassen
