@@ -1,0 +1,48 @@
+name: General Issue
+description: Report a bug, suggest a feature, or document a task.
+title: "[ISSUE]: "
+labels: []
+assignees: []
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Please describe the problem, task, or feature request in detail.
+      placeholder: Enter a detailed description here
+    validations:
+      required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: Issue Type
+      options:
+        - Bug
+        - Feature Request
+        - Task
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce (for bugs)
+      description: How can the bug be reproduced? (Optional for tasks & feature requests)
+      placeholder: 1. Step, 2. Step, ...
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: Version/Commit
+      description: Which version or commit is affected? (Optional)
+      placeholder: e.g. v1.2.3, commit hash
+    validations:
+      required: false
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Information or Screenshots
+      description: Add any relevant notes, links, or screenshots.
+      placeholder: Paste here
+    validations:
+      required: false
