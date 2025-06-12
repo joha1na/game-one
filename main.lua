@@ -142,9 +142,12 @@ function love.draw()
     love.graphics.print('Punkte: ' .. score, 10, 110)
     love.graphics.print('Spieler*in Leben: ' .. player.health, 10, 130)
     
+    -- Zeige den aktuellen Highscore an
+    love.graphics.print('Highscore: ' .. Highscore.getBestScore(), 10, 150)
+    
     -- Zeige Unverwundbarkeitszeit an
     if player.invincible then
-        love.graphics.print('Unverwundbar: ' .. string.format("%.1f", player.invincibleTime), 10, 150)
+        love.graphics.print('Unverwundbar: ' .. string.format("%.1f", player.invincibleTime), 10, 170)
     end
 end
 
@@ -194,3 +197,6 @@ end
 -- - Unit-Tests erstellen? (in Lua nicht üblich?)
 -- - Auf GitHub hochladen
 -- - Veröffentlichen auf itch.io prüfen
+-- - Release-Notes löschen
+-- - Mit Branches arbeiten?
+-- - README.md anpassen
