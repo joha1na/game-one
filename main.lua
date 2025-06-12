@@ -8,6 +8,7 @@ local Highscore = require('highscore')
 local UI_PADDING = 10
 local UI_LINE_HEIGHT = 20
 local UI_START_Y = 10
+local UI_SUBTEXT_SIZE = 12
 
 -- Cache für den Highscore
 local currentHighscore = 0
@@ -146,6 +147,9 @@ function love.draw()
     -- Setze die Farbe zurück auf Weiß für den Text
     love.graphics.setColor(1, 1, 1)
     
+    -- Setze die Schriftgröße für Debug-Texte
+    love.graphics.setFont(love.graphics.newFont(UI_SUBTEXT_SIZE))
+    
     -- Zeichne die aktuelle Position als Text (für Debugging)
     love.graphics.print('Position: ' .. math.floor(player.x), UI_PADDING, UI_START_Y)
     love.graphics.print('Geschosse: ' .. #bullets, UI_PADDING, UI_START_Y + UI_LINE_HEIGHT)
@@ -188,7 +192,7 @@ end
 -- - Highscore implementieren -> done
 -- - Highscore im Game Over Bildschirm anzeigen -> done
 -- - Highscore auf der Spielseite anzeigen -> done
--- - Highscore auf der Startseite anzeigen
+-- - Highscore auf der Startseite anzeigen -> done
 -- - Spiel beenden
 -- - Spiel speichern
 -- - Spiel laden
@@ -208,8 +212,8 @@ end
 -- - Code-Struktur verbessern
 -- - Dokumentation erstellen
 -- - Unit-Tests erstellen? (in Lua nicht üblich?)
--- - Auf GitHub hochladen
+-- - Auf GitHub hochladen -> done
 -- - Veröffentlichen auf itch.io prüfen
 -- - Release-Notes löschen
--- - Mit Branches arbeiten?
+-- - Mit Branches arbeiten -> done
 -- - README.md anpassen
