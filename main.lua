@@ -9,6 +9,9 @@ local UI_PADDING = 10
 local UI_LINE_HEIGHT = 20
 local UI_START_Y = 10
 
+-- Cache für den Highscore
+local currentHighscore = 0
+
 -- Diese Funktion prüft, ob zwei Rechtecke sich überlappen
 function checkCollision(rect1, rect2)
     return rect1.x < rect2.x + rect2.width and
@@ -39,7 +42,7 @@ function love.load()
     -- Highscores laden
     Highscore.load()
     
-    -- Cache für den Highscore
+    -- Initialisiere den Highscore-Cache
     currentHighscore = Highscore.getBestScore()
 end
 
