@@ -221,36 +221,3 @@ function love.keypressed(key)
         love.event.quit()
     end
 end
-
--- TODO:
--- - Begrüßungsbildschirm mit Start-Button -> done
--- - Pause-Funktion mit Bildschirm -> done
--- - Game-Over-Bildschirm mit Start-Button -> done
--- - Highscore implementieren -> done
--- - Highscore im Game Over Bildschirm anzeigen -> done
--- - Highscore auf der Spielseite anzeigen -> done
--- - Highscore auf der Startseite anzeigen -> done
--- - Spiel beenden
--- - Spiel speichern
--- - Spiel laden
--- - Spielstand bzw. Highscore löschen
--- - Feinde schießen lassen -> done
--- - Feinde bewegen sich nicht nur nach unten, sondern auch nach links und rechts
--- - unterschiedliche Feinde mit unterschiedlicher Geschwindigkeit und Leben
--- - unterschiedliche Geschosse mit unterschiedlicher Geschwindigkeit und Schaden
--- - unterschiedliche Level
--- - Musik und Soundeffekte
--- - Grafiken
--- - Englische Übersetzung
--- - Sprachauswahl
--- - Spieler*in bewegt sich auch nach oben und unten
--- - Sterne können gesammelt werden
--- - Sterne bewirken verschiedene Bonus-Effekte für die Spieler*in
--- - Code-Struktur verbessern
--- - Dokumentation erstellen
--- - Unit-Tests erstellen? (in Lua nicht üblich?)
--- - Auf GitHub hochladen -> done
--- - Veröffentlichen auf itch.io prüfen
--- - Release-Notes löschen
--- - Mit Branches arbeiten -> done
--- - README.md anpassen
