@@ -10,6 +10,8 @@ function Enemy.new()
     self.height = 40
     self.speed = 100  -- Langsamere Geschwindigkeit als der Spieler
     self.health = 3   -- Feind hat 3 Leben
+    self.shootCooldown = 0  -- Cooldown für das Schießen
+    self.shootChance = 0.01  -- Wahrscheinlichkeit zu schießen (je höher, desto wahrscheinlicher)
     
     return self
 end
@@ -20,6 +22,11 @@ function Enemy:update(dt)
     -- Zurücksetzen, wenn der Feind den Bildschirm verlässt
     if self.y > love.graphics.getHeight() then
         self:reset()
+    end
+    
+    -- Cooldown für das Schießen aktualisieren
+    if self.shootCooldown > 0 then
+        self.shootCooldown = self.shootCooldown - dt
     end
 end
 
@@ -33,6 +40,7 @@ function Enemy:reset()
     self.y = 0
     self.x = math.random(0, love.graphics.getWidth() - self.width)
     self.health = 3
+    self.shootCooldown = 1  -- Initialer Cooldown nach dem Zurücksetzen
 end
 
 function Enemy:takeDamage()
@@ -44,4 +52,18 @@ function Enemy:takeDamage()
     return false
 end
 
-return Enemy 
+function Enemy:shoot()
+    if self.shootCooldown <= 0 and math.random() < self.shootChance then
+        self.shootCooldown = 2  -- 2 Sekunden Cooldown zwischen den Schüssen
+        return {
+            x = self.x + self.width / 2 - 2,  -- Zentriert unter dem Feind
+            y = self.y + self.height,
+            width = 4,
+            height = 10,
+            speed = 200  -- Langsamere Geschwindigkeit als Spielergeschosse
+        }
+    end
+    return nil
+end
+
+return Enemy
