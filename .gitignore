@@ -11,3 +11,17 @@ highscores.json
 
 # Logs
 *.log 
+
+# Development notes
+IDEAS.md 
+
+# Test-bezogene Dateien
+/tests/coverage/
+/tests/reports/
+/tests/temp/
+/tests/*.tmp
+luacov.stats.out
+luacov.report.out
+
+# Busted-generierte Files
+.busted.out
