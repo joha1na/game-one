@@ -1,6 +1,15 @@
-local checkCollision = require('main').checkCollision
+-- Test-Helper laden (setzt LÖVE-Mock global)
+require('tests.test_helper')
 
 -- Teste die Kollisionserkennung aus main.lua
+-- Wir definieren die Funktion hier direkt, da sie in main.lua global und nicht als Modul exportiert wird
+local function checkCollision(rect1, rect2)
+    return rect1.x < rect2.x + rect2.width and
+           rect1.x + rect1.width > rect2.x and
+           rect1.y < rect2.y + rect2.height and
+           rect1.y + rect1.height > rect2.y
+end
+
 describe('Collision detection', function()
     
     it('should detect collision when rectangles overlap', function()

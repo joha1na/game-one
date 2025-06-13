@@ -44,12 +44,27 @@ Die Tests sind nach den Modulen organisiert:
 - `player_spec.lua`: Tests für die Player-Klasse
 - `collision_spec.lua`: Tests für die Kollisionserkennung
 - `highscore_spec.lua`: Tests für die Highscore-Funktionen
+- `test_helper.lua`: Gemeinsame Hilfsfunktionen und Setup für alle Tests
+- `love_mock.lua`: Mock-Implementierung der LÖVE-Engine für Tests
+
+## Test Helper
+
+Alle Tests verwenden den `test_helper.lua`, um gemeinsame Funktionalitäten zu teilen. Der Test-Helper:
+
+1. Lädt den LÖVE-Mock und macht ihn global verfügbar
+2. Stellt gemeinsame Hilfsfunktionen für Tests bereit
 
 ## Tests hinzufügen
 
 Um neue Tests hinzuzufügen, erstellen Sie eine neue Datei mit der Benennung `name_spec.lua` im `tests`-Verzeichnis. Die Teststruktur folgt dem Busted-Format:
 
 ```lua
+-- Test-Helper laden (setzt LÖVE-Mock global)
+require('tests.test_helper')
+
+-- Module laden, die getestet werden sollen
+local MyModule = require('path.to.module')
+
 describe('Modulname', function()
   it('sollte etwas tun', function()
     -- Test-Code
@@ -63,6 +78,7 @@ end)
 Die folgenden Test-Dateien sollten im Repository veröffentlicht werden:
 
 - Alle `*_spec.lua`-Dateien (die eigentlichen Tests)
+- `test_helper.lua` (Gemeinsames Test-Setup)
 - `love_mock.lua` (Mock für die LÖVE-Engine)
 - `run_with_mock.lua` (Helfer-Skript)
 - `.busted` (Konfigurationsdatei)

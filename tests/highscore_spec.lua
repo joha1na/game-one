@@ -1,3 +1,6 @@
+-- Test-Helper laden (setzt LÖVE-Mock global)
+require('tests.test_helper')
+
 local Highscore = require('highscore')
 local originalSave = Highscore.save -- Original-Funktion sichern
 

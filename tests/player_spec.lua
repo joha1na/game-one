@@ -1,3 +1,7 @@
+-- Test-Helper laden (setzt LÖVE-Mock global)
+require('tests.test_helper')
+
+-- Player-Modul laden
 local Player = require('entities.Player')
 
 describe('Player', function()
