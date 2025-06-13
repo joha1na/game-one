@@ -1,13 +1,7 @@
+local checkCollision = require('main').checkCollision
+
 -- Teste die Kollisionserkennung aus main.lua
 describe('Collision detection', function()
-    -- Die checkCollision Funktion ist in main.lua definiert
-    -- Wir müssen sie hier kopieren um sie zu testen
-    local function checkCollision(rect1, rect2)
-        return rect1.x < rect2.x + rect2.width and
-               rect1.x + rect1.width > rect2.x and
-               rect1.y < rect2.y + rect2.height and
-               rect1.y + rect1.height > rect2.y
-    end
     
     it('should detect collision when rectangles overlap', function()
         local rect1 = { x = 0, y = 0, width = 10, height = 10 }
