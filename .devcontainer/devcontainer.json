@@ -1,26 +1,50 @@
 {
-    "name": "Love2D Game Development",
+    "name": "Love2D Development (Test & Code)",
     "build": {
-        "dockerfile": "Dockerfile"
+        "dockerfile": "Dockerfile",
+        "context": "."
     },
     "features": {
         "ghcr.io/devcontainers/features/git:1": {},
         "ghcr.io/devcontainers/features/github-cli:1": {}
     },
-    "postStartCommand": "./.devcontainer/postStart.sh",
+    "postCreateCommand": "bash ./.devcontainer/postCreate.sh",
     "customizations": {
         "vscode": {
             "extensions": [
+                "sumneko.lua",
+                "yinfei.luahelper",
+                "streetsidesoftware.code-spell-checker",
+                "formulahendry.code-runner"
             ],
             "settings": {
                 "terminal.integrated.defaultProfile.linux": "bash",
+                "terminal.integrated.profiles.linux": {
+                    "bash": {
+                        "path": "bash",
+                        "icon": "terminal-bash"
+                    }
+                },
                 "editor.tabSize": 4,
                 "editor.insertSpaces": true,
                 "editor.detectIndentation": true,
-                "files.encoding": "utf8"
+                "files.encoding": "utf8",
+                "lua.debug.settings.path": "^(?:${workspaceFolder}[\\\\/]?.+)",
+                "lua.debug.settings.luaVersion": "5.1",
+                "code-runner.executorMap": {
+                    "lua": "lua"
+                }
             }
         }
     },
     "remoteUser": "vscode",
-    "forwardPorts": [8080]
+    
+    // Diese Optionen verbessern die Performance in Codespaces
+    "mounts": [
+        "source=${localWorkspaceFolderBasename}-node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume"
+    ],
+    "runArgs": [
+        "--cap-add=SYS_PTRACE",
+        "--security-opt", "seccomp=unconfined"
+    ]
 }
