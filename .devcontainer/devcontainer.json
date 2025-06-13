@@ -1,0 +1,26 @@
+{
+    "name": "Love2D Game Development",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/git:1": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    },
+    "postStartCommand": "./.devcontainer/postStart.sh",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "editor.tabSize": 4,
+                "editor.insertSpaces": true,
+                "editor.detectIndentation": true,
+                "files.encoding": "utf8"
+            }
+        }
+    },
+    "remoteUser": "vscode",
+    "forwardPorts": [8080]
+}
