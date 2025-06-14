@@ -3,9 +3,19 @@ Enemy.__index = Enemy
 
 local GameConstants = require 'constants.Game'
 
+--[[
+    Enemy-Klasse: Repräsentiert den Gegner im Spiel
+    Verantwortlich für:
+    - Bewegung des Gegners (horizontal und vertikal)
+    - Schießen mit zufälliger Wahrscheinlichkeit
+    - Kollisionserkennung
+    - Gesundheit und Reset-Logik
+]]
+
 function Enemy.new()
     local self = setmetatable({}, Enemy)
     
+    -- Initialisierung der Gegner-Eigenschaften
     self.x = 375  -- Start in der Mitte
     self.y = 0    -- Start oben
     self.width = 40
@@ -20,6 +30,10 @@ function Enemy.new()
     return self
 end
 
+--[[
+    Aktualisiert den Gegner-Status
+    @param dt number - Delta-Zeit seit dem letzten Update
+]]
 function Enemy:update(dt)
     -- Vertikale Bewegung
     self.y = self.y + self.verticalSpeed * dt
@@ -47,12 +61,21 @@ function Enemy:update(dt)
     end
 end
 
+--[[
+    Zeichnet den Gegner auf dem Bildschirm
+    Verwendet rote Farbe für den Gegner
+]]
 function Enemy:draw()
     love.graphics.setColor(1, 0, 0)  -- Rot
     love.graphics.rectangle('fill', self.x, self.y, self.width, self.height)
     love.graphics.setColor(1, 1, 1)  -- Zurück zu Weiß
 end
 
+--[[
+    Setzt den Gegner zurück
+    Wird aufgerufen, wenn der Gegner den Bildschirm verlässt oder zerstört wird
+    Setzt Position, Gesundheit und Geschwindigkeiten neu
+]]
 function Enemy:reset()
     self.y = 0
     self.x = math.random(0, love.graphics.getWidth() - self.width)
@@ -62,6 +85,10 @@ function Enemy:reset()
     self.horizontalSpeed = math.random(20, 80)  -- Auch beim Reset zufällig
 end
 
+--[[
+    Behandelt Schaden am Gegner
+    @return boolean - true wenn der Gegner zerstört wurde, false wenn noch am Leben
+]]
 function Enemy:takeDamage()
     self.health = self.health - 1
     if self.health <= 0 then
@@ -71,6 +98,10 @@ function Enemy:takeDamage()
     return false
 end
 
+--[[
+    Erzeugt ein neues Projektil mit zufälliger Wahrscheinlichkeit
+    @return table|nil - Projektil-Objekt oder nil wenn nicht geschossen wird
+]]
 function Enemy:shoot()
     if self.shootCooldown <= 0 and math.random() < self.shootChance then
         self.shootCooldown = GameConstants.ENEMY_SHOOT_COOLDOWN

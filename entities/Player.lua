@@ -3,9 +3,19 @@ Player.__index = Player
 
 local GameConstants = require 'constants.Game'
 
+--[[
+    Player-Klasse: Repräsentiert den Spieler im Spiel
+    Verantwortlich für:
+    - Bewegung des Spielers
+    - Schießen
+    - Kollisionserkennung
+    - Gesundheit und Unverwundbarkeit
+]]
+
 function Player.new()
     local self = setmetatable({}, Player)
     
+    -- Initialisierung der Spieler-Eigenschaften
     self.x = 375  -- (800 - 50) / 2 = 375, um das 50 Pixel breite Rechteck zu zentrieren
     self.y = 500  -- y-Position etwas über dem unteren Rand
     self.width = 50
@@ -20,6 +30,10 @@ function Player.new()
     return self
 end
 
+--[[
+    Aktualisiert den Spieler-Status
+    @param dt number - Delta-Zeit seit dem letzten Update
+]]
 function Player:update(dt)
     -- Bewegung nach links mit der linken Pfeiltaste
     if love.keyboard.isDown('left') then
@@ -55,12 +69,20 @@ function Player:update(dt)
     end
 end
 
+--[[
+    Zeichnet den Spieler auf dem Bildschirm
+    Implementiert einen Blitzeffekt während der Unverwundbarkeitsphase
+]]
 function Player:draw()
     if not self.invincible or math.floor(self.flashTime * 10) % 2 == 0 then
         love.graphics.rectangle('fill', self.x, self.y, self.width, self.height)
     end
 end
 
+--[[
+    Erzeugt ein neues Projektil, wenn der Cooldown abgelaufen ist
+    @return table|nil - Projektil-Objekt oder nil wenn Cooldown noch aktiv
+]]
 function Player:shoot()
     if self.shootCooldown <= 0 then
         self.shootCooldown = GameConstants.PLAYER_SHOOT_COOLDOWN
@@ -75,6 +97,11 @@ function Player:shoot()
     return nil
 end
 
+--[[
+    Behandelt Schaden am Spieler
+    Aktiviert Unverwundbarkeit für eine kurze Zeit
+    @return boolean - true wenn Schaden genommen wurde, false wenn unverwundbar
+]]
 function Player:takeDamage()
     if not self.invincible then
         self.health = self.health - 1

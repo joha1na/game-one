@@ -2,10 +2,19 @@ local UI = {}
 local Highscore = require('highscore')
 local UIConstants = require('constants.UI')
 
+--[[
+    UI-Klasse: Verantwortlich für die Benutzeroberfläche des Spiels
+    Verantwortlich für:
+    - Anzeige aller Spielbildschirme (Start, Pause, Game Over)
+    - Button-Handling
+    - Highscore-Anzeige
+    - Debug-Informationen
+]]
+
 function UI.new()
     local self = setmetatable({}, { __index = UI })
     
-    -- Cache fonts
+    -- Cache fonts für bessere Performance
     self.fonts = {
         title = love.graphics.newFont(UIConstants.TITLE_SIZE),
         text = love.graphics.newFont(UIConstants.TEXT_SIZE),
@@ -39,6 +48,10 @@ function UI.new()
     return self
 end
 
+--[[
+    Zeichnet einen Button auf dem Bildschirm
+    @param button table - Button-Objekt mit Position, Größe und Text
+]]
 function UI:drawButton(button)
     love.graphics.setColor(0.2, 0.6, 1)
     love.graphics.rectangle('fill', button.x, button.y, button.width, button.height)
@@ -48,11 +61,22 @@ function UI:drawButton(button)
         button.width, "center")
 end
 
+--[[
+    Prüft, ob ein Punkt innerhalb eines Buttons liegt
+    @param x number - X-Koordinate des Punktes
+    @param y number - Y-Koordinate des Punktes
+    @param button table - Button-Objekt
+    @return boolean - true wenn der Punkt im Button liegt
+]]
 function UI:isPointInButton(x, y, button)
     return x >= button.x and x <= button.x + button.width and
            y >= button.y and y <= button.y + button.height
 end
 
+--[[
+    Zeichnet den Startbildschirm
+    Zeigt Titel, Highscore und Start-Button
+]]
 function UI:drawStartScreen()
     -- Setze die Farbe auf Weiß
     love.graphics.setColor(1, 1, 1)
@@ -76,6 +100,10 @@ function UI:drawStartScreen()
     self:drawButton(self.startButton)
 end
 
+--[[
+    Zeichnet den Pausebildschirm
+    Zeigt Pause-Text und Zurück-Button
+]]
 function UI:drawPauseScreen()
     love.graphics.setColor(1, 1, 1)
     love.graphics.setFont(self.fonts.title)
@@ -87,8 +115,12 @@ function UI:drawPauseScreen()
     self:drawButton(self.backButton)
 end
 
+--[[
+    Zeichnet den Game-Over-Bildschirm
+    @param game table - Spielobjekt mit aktuellem Zustand und Score
+]]
 function UI:drawGameOverScreen(game)
-    -- Debug-Ausgaben
+    -- Debug-Ausgaben für Entwicklungszwecke
     local bestScore = Highscore.getBestScore()
     local previousBestScore = game.state.previousBestScore or 0
     
@@ -140,11 +172,19 @@ function UI:drawGameOverScreen(game)
             love.graphics.getWidth(), "center")
     end
     
+    -- Neustart-Button
     self.startButton.text = "Neustart"
     self.startButton.y = love.graphics.getHeight() - love.graphics.getHeight() / 4
     self:drawButton(self.startButton)
 end
 
+--[[
+    Behandelt Mausklicks auf Buttons
+    @param x number - X-Koordinate des Klicks
+    @param y number - Y-Koordinate des Klicks
+    @param gameState table - Aktueller Spielzustand
+    @return string - Neuer Spielzustand oder aktueller Zustand
+]]
 function UI:handleClick(x, y, gameState)
     if gameState.currentState == "start" and self:isPointInButton(x, y, self.startButton) then
         return "playing"
