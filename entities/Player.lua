@@ -1,6 +1,8 @@
 local Player = {}
 Player.__index = Player
 
+local GameConstants = require 'constants.Game'
+
 function Player.new()
     local self = setmetatable({}, Player)
     
@@ -9,11 +11,11 @@ function Player.new()
     self.width = 50
     self.height = 50
     self.speed = 200  -- Geschwindigkeit in Pixeln pro Sekunde
-    self.cooldown = 0  -- Cooldown für das Schießen
     self.health = 3  -- Spieler*in hat 3 Leben
     self.invincible = false  -- Unverwundbarkeitsstatus
     self.invincibleTime = 0  -- Zeit der Unverwundbarkeit
     self.flashTime = 0  -- Zeit für den Blitzeffekt
+    self.shootCooldown = GameConstants.PLAYER_SHOOT_COOLDOWN -- Cooldown für das Schießen
     
     return self
 end
@@ -48,8 +50,8 @@ function Player:update(dt)
     end
     
     -- Cooldown aktualisieren
-    if self.cooldown > 0 then
-        self.cooldown = self.cooldown - dt
+    if self.shootCooldown > 0 then
+        self.shootCooldown = self.shootCooldown - dt
     end
 end
 
@@ -60,8 +62,8 @@ function Player:draw()
 end
 
 function Player:shoot()
-    if self.cooldown <= 0 then
-        self.cooldown = 0.25  -- BULLET_COOLDOWN
+    if self.shootCooldown <= 0 then
+        self.shootCooldown = GameConstants.PLAYER_SHOOT_COOLDOWN
         return {
             x = self.x + self.width / 2 - 2,  -- Zentriert über dem Spieler
             y = self.y,

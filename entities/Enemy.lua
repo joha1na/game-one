@@ -1,6 +1,8 @@
 local Enemy = {}
 Enemy.__index = Enemy
 
+local GameConstants = require 'constants.Game'
+
 function Enemy.new()
     local self = setmetatable({}, Enemy)
     
@@ -12,7 +14,7 @@ function Enemy.new()
     self.horizontalSpeed = math.random(20, 80)  -- Geschwindigkeit zwischen 20 und 80
     self.direction = math.random() < 0.5 and -1 or 1  -- Zufällige Richtung (-1 für links, 1 für rechts)
     self.health = 3   -- Feind hat 3 Leben
-    self.shootCooldown = 0  -- Cooldown für das Schießen
+    self.shootCooldown = GameConstants.ENEMY_SHOOT_COOLDOWN -- Cooldown für das Schießen
     self.shootChance = 0.03  -- Wahrscheinlichkeit zu schießen (je höher, desto wahrscheinlicher)
     
     return self
@@ -55,7 +57,7 @@ function Enemy:reset()
     self.y = 0
     self.x = math.random(0, love.graphics.getWidth() - self.width)
     self.health = 3
-    self.shootCooldown = 0  -- Sofort schussbereit nach dem Erscheinen
+    self.shootCooldown = GameConstants.ENEMY_SHOOT_COOLDOWN
     self.verticalSpeed = math.random(100, 150)  -- Langsamere Geschwindigkeit als der Spieler
     self.horizontalSpeed = math.random(20, 80)  -- Auch beim Reset zufällig
 end
@@ -71,7 +73,7 @@ end
 
 function Enemy:shoot()
     if self.shootCooldown <= 0 and math.random() < self.shootChance then
-        self.shootCooldown = 2  -- 2 Sekunden Cooldown zwischen den Schüssen
+        self.shootCooldown = GameConstants.ENEMY_SHOOT_COOLDOWN
         return {
             x = self.x + self.width / 2 - 2,  -- Zentriert unter dem Feind
             y = self.y + self.height,
