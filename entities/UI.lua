@@ -87,17 +87,17 @@ function UI:drawPauseScreen()
     self:drawButton(self.backButton)
 end
 
-function UI:drawGameOverScreen()
+function UI:drawGameOverScreen(game)
     -- Debug-Ausgaben
     local bestScore = Highscore.getBestScore()
-    local previousBestScore = gameState.previousBestScore or 0
+    local previousBestScore = game.state.previousBestScore or 0
     
     love.graphics.setColor(1, 1, 1)
     love.graphics.setFont(self.fonts.subtext)
-    love.graphics.printf("Debug - Aktueller Score: " .. score, UIConstants.PADDING, UIConstants.START_Y, 300, "left")
+    love.graphics.printf("Debug - Aktueller Score: " .. game.score, UIConstants.PADDING, UIConstants.START_Y, 300, "left")
     love.graphics.printf("Debug - Bester Score: " .. bestScore, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT, 300, "left")
     love.graphics.printf("Debug - Vorheriger Bester Score: " .. previousBestScore, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 2, 300, "left")
-    love.graphics.printf("Debug - Ist neuer Highscore: " .. tostring(score > previousBestScore), UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 3, 300, "left")
+    love.graphics.printf("Debug - Ist neuer Highscore: " .. tostring(game.score > previousBestScore), UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 3, 300, "left")
     
     -- Game Over Text
     love.graphics.setColor(1, 0, 0)
@@ -109,12 +109,12 @@ function UI:drawGameOverScreen()
     -- Zeige den aktuellen Score
     love.graphics.setColor(1, 1, 1)
     love.graphics.setFont(self.fonts.text)
-    love.graphics.printf("Dein Score: " .. score,
+    love.graphics.printf("Dein Score: " .. game.score,
         0, love.graphics.getHeight()/4 + 50,
         love.graphics.getWidth(), "center")
     
     -- Prüfe, ob ein neuer Highscore erreicht wurde
-    if score > 0 and score > previousBestScore then
+    if game.score > 0 and game.score > previousBestScore then
         love.graphics.setColor(1, 0.8, 0)  -- Goldene Farbe für die Nachricht
         love.graphics.printf("NEUER HIGHSCORE!",
             0, love.graphics.getHeight()/4 + 80,
@@ -130,7 +130,7 @@ function UI:drawGameOverScreen()
     local scores = Highscore.getAllScores()
     for i, highscore in ipairs(scores) do
         -- Hebe den aktuellen Score hervor, wenn es ein neuer Highscore ist
-        if highscore == score and score > previousBestScore then
+        if highscore == game.score and game.score > previousBestScore then
             love.graphics.setColor(1, 0.8, 0)  -- Goldene Farbe für den neuen Highscore
         else
             love.graphics.setColor(1, 1, 1)    -- Weiße Farbe für andere Scores

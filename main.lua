@@ -5,9 +5,6 @@ local UI = require('entities.UI')
 local Highscore = require('highscore')
 local UIConstants = require('constants.UI')
 
--- Cache für den Highscore
-local currentHighscore = 0
-
 -- Diese Funktion prüft, ob zwei Rechtecke sich überlappen
 function checkCollision(rect1, rect2)
     return rect1.x < rect2.x + rect2.width and
@@ -16,202 +13,199 @@ function checkCollision(rect1, rect2)
            rect1.y + rect1.height > rect2.y
 end
 
--- Diese Funktion wird einmal beim Start des Spiels aufgerufen
-function love.load()
-    -- Spielzustand
-    gameState = {
+-- Lokale Variablen für den Spielzustand
+local game = {
+    state = {
         currentState = "start",  -- "start", "playing", "paused", "gameOver", "restart"
         previousBestScore = 0
-    }
+    },
+    player = nil,
+    enemy = nil,
+    ui = nil,
+    bullets = {},
+    enemyBullets = {},
+    score = 0,
+    currentHighscore = 0
+}
+
+-- Diese Funktion wird einmal beim Start des Spiels aufgerufen
+function love.load()
+    -- Spielzustand zurücksetzen
+    game.state.currentState = "start"
+    game.score = 0
     
     -- Spielobjekte erstellen
-    player = Player.new()
-    enemy = Enemy.new()
-    ui = UI.new()
-    
-    -- Tabelle für alle Geschosse
-    bullets = {}
-    
-    -- Tabelle für alle Gegner-Geschosse
-    enemyBullets = {}
-    
-    -- Punktestand
-    score = 0
+    game.player = Player.new()
+    game.enemy = Enemy.new()
+    game.ui = UI.new()
     
     -- Highscores laden
     Highscore.load()
     
     -- Initialisiere den Highscore-Cache
-    currentHighscore = Highscore.getBestScore()
+    game.currentHighscore = Highscore.getBestScore()
 end
 
 -- Diese Funktion wird in jedem Frame aufgerufen
 -- dt ist die Zeit seit dem letzten Frame in Sekunden
 function love.update(dt)
-    if gameState.currentState == "start" or gameState.currentState == "paused" or gameState.currentState == "gameOver" then
+    if game.state.currentState == "start" or game.state.currentState == "paused" or game.state.currentState == "gameOver" then
         return
     end
     
---[[     if gameState.currentState == "gameOver" then
-        if love.keyboard.isDown('r') then
-            love.load()  -- Spiel neu starten
-        end
-        return
-    end ]]
-    
     -- Spieler aktualisieren
-    player:update(dt)
+    game.player:update(dt)
     
     -- Schießen mit Leertaste
     if love.keyboard.isDown('space') then
-        local bullet = player:shoot()
+        local bullet = game.player:shoot()
         if bullet then
-            table.insert(bullets, bullet)
+            table.insert(game.bullets, bullet)
         end
     end
     
     -- Geschosse aktualisieren
-    for i = #bullets, 1, -1 do
-        local bullet = bullets[i]
+    for i = #game.bullets, 1, -1 do
+        local bullet = game.bullets[i]
         -- Geschoss nach oben bewegen
         bullet.y = bullet.y - bullet.speed * dt
         
         -- Kollisionserkennung mit Feind
-        if checkCollision(bullet, enemy) then
+        if checkCollision(bullet, game.enemy) then
             -- Geschoss entfernen
-            table.remove(bullets, i)
-            if enemy:takeDamage() then
-                score = score + 100
+            table.remove(game.bullets, i)
+            if game.enemy:takeDamage() then
+                game.score = game.score + 100
             end
         -- Geschoss entfernen, wenn es den Bildschirm verlässt
         elseif bullet.y + bullet.height < 0 then
-            table.remove(bullets, i)
+            table.remove(game.bullets, i)
         end
     end
     
     -- Feind aktualisieren
-    enemy:update(dt)
+    game.enemy:update(dt)
     
     -- Feind kann schießen
-    local enemyBullet = enemy:shoot()
+    local enemyBullet = game.enemy:shoot()
     if enemyBullet then
-        table.insert(enemyBullets, enemyBullet)
+        table.insert(game.enemyBullets, enemyBullet)
     end
     
     -- Gegner-Geschosse aktualisieren
-    for i = #enemyBullets, 1, -1 do
-        local bullet = enemyBullets[i]
+    for i = #game.enemyBullets, 1, -1 do
+        local bullet = game.enemyBullets[i]
         -- Geschoss nach unten bewegen
         bullet.y = bullet.y + bullet.speed * dt
         
         -- Kollisionserkennung mit Spieler
-        if checkCollision(bullet, player) then
+        if checkCollision(bullet, game.player) then
             -- Geschoss entfernen
-            table.remove(enemyBullets, i)
-            if player:takeDamage() and player.health <= 0 then
-                gameState.previousBestScore = Highscore.getBestScore() -- Merke alten Bestwert
-                gameState.currentState = "gameOver"
+            table.remove(game.enemyBullets, i)
+            if game.player:takeDamage() and game.player.health <= 0 then
+                game.state.previousBestScore = Highscore.getBestScore() -- Merke alten Bestwert
+                game.state.currentState = "gameOver"
                 -- Speichere den Score, wenn das Spiel vorbei ist
-                Highscore.addScore(score)
+                Highscore.addScore(game.score)
                 -- Aktualisiere den Highscore-Cache
-                currentHighscore = Highscore.getBestScore()
+                game.currentHighscore = Highscore.getBestScore()
             end
         -- Geschoss entfernen, wenn es den Bildschirm verlässt
         elseif bullet.y > love.graphics.getHeight() then
-            table.remove(enemyBullets, i)
+            table.remove(game.enemyBullets, i)
         end
     end
     
     -- Kollisionserkennung zwischen Spieler und Feind
-    if checkCollision(player, enemy) then
-        if player:takeDamage() then
-            enemy:reset()
-            if player.health <= 0 then
-                gameState.previousBestScore = Highscore.getBestScore() -- Merke alten Bestwert
-                gameState.currentState = "gameOver"
+    if checkCollision(game.player, game.enemy) then
+        if game.player:takeDamage() then
+            game.enemy:reset()
+            if game.player.health <= 0 then
+                game.state.previousBestScore = Highscore.getBestScore() -- Merke alten Bestwert
+                game.state.currentState = "gameOver"
                 -- Speichere den Score, wenn das Spiel vorbei ist
-                Highscore.addScore(score)
+                Highscore.addScore(game.score)
                 -- Aktualisiere den Highscore-Cache
-                currentHighscore = Highscore.getBestScore()
+                game.currentHighscore = Highscore.getBestScore()
             end
         end
     end
     
     -- Pause mit P-Taste
     if love.keyboard.isDown('p') then
-        gameState.currentState = "paused"
+        game.state.currentState = "paused"
     end
 end
 
 -- Diese Funktion wird in jedem Frame aufgerufen
 -- Hier zeichnen wir alles auf den Bildschirm
 function love.draw()
-    if gameState.currentState == "start" then
-        ui:drawStartScreen()
+    if game.state.currentState == "start" then
+        game.ui:drawStartScreen()
         return
     end
     
-    if gameState.currentState == "paused" then
-        ui:drawPauseScreen()
+    if game.state.currentState == "paused" then
+        game.ui:drawPauseScreen()
         return
     end
     
-    if gameState.currentState == "gameOver" then
-        ui:drawGameOverScreen()
+    if game.state.currentState == "gameOver" then
+        game.ui:drawGameOverScreen(game)
         return
     end
     
     -- Spieler zeichnen
-    player:draw()
+    game.player:draw()
     
     -- Spieler-Geschosse zeichnen
-    for _, bullet in ipairs(bullets) do
+    for _, bullet in ipairs(game.bullets) do
         love.graphics.setColor(0, 1, 0)  -- Grün für Spielergeschosse
         love.graphics.rectangle('fill', bullet.x, bullet.y, bullet.width, bullet.height)
     end
     
     -- Gegner-Geschosse zeichnen
-    for _, bullet in ipairs(enemyBullets) do
+    for _, bullet in ipairs(game.enemyBullets) do
         love.graphics.setColor(1, 0.5, 0)  -- Orange/Rot für Gegnergeschosse
         love.graphics.rectangle('fill', bullet.x, bullet.y, bullet.width, bullet.height)
     end
     
     -- Feind zeichnen
-    enemy:draw()
+    game.enemy:draw()
     
     -- Setze die Farbe zurück auf Weiß für den Text
     love.graphics.setColor(1, 1, 1)
     
     -- Setze die Schriftgröße für Debug-Texte
-    love.graphics.setFont(ui.fonts.subtext)
+    love.graphics.setFont(game.ui.fonts.subtext)
     
     -- Zeichne die aktuelle Position als Text (für Debugging)
-    love.graphics.print('Position: ' .. math.floor(player.x), UIConstants.PADDING, UIConstants.START_Y)
-    love.graphics.print('Spieler-Geschosse: ' .. #bullets, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT)
-    love.graphics.print('Gegner-Geschosse: ' .. #enemyBullets, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 2)
-    love.graphics.print('Feind Position X: ' .. math.floor(enemy.x), UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 3)
-    love.graphics.print('Feind Position Y: ' .. math.floor(enemy.y), UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 4)
-    love.graphics.print('Feind Leben: ' .. enemy.health, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 5)
-    love.graphics.print('Feind Cooldown: ' .. string.format("%.1f", enemy.shootCooldown), UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 6)
-    love.graphics.print('Punkte: ' .. score, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 7)
-    love.graphics.print('Spieler*in Leben: ' .. player.health, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 8)
+    love.graphics.print('Position: ' .. math.floor(game.player.x), UIConstants.PADDING, UIConstants.START_Y)
+    love.graphics.print('Spieler-Geschosse: ' .. #game.bullets, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT)
+    love.graphics.print('Gegner-Geschosse: ' .. #game.enemyBullets, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 2)
+    love.graphics.print('Feind Position X: ' .. math.floor(game.enemy.x), UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 3)
+    love.graphics.print('Feind Position Y: ' .. math.floor(game.enemy.y), UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 4)
+    love.graphics.print('Feind Leben: ' .. game.enemy.health, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 5)
+    love.graphics.print('Feind Cooldown: ' .. string.format("%.1f", game.enemy.shootCooldown), UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 6)
+    love.graphics.print('Punkte: ' .. game.score, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 7)
+    love.graphics.print('Spieler*in Leben: ' .. game.player.health, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 8)
     
     -- Zeige den aktuellen Highscore an
-    love.graphics.print('Bisheriger Highscore: ' .. currentHighscore, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 9)
+    love.graphics.print('Bisheriger Highscore: ' .. game.currentHighscore, UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 9)
     
     -- Zeige Unverwundbarkeitszeit an
-    if player.invincible then
-        love.graphics.print('Unverwundbar: ' .. string.format("%.1f", player.invincibleTime), UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 10)
+    if game.player.invincible then
+        love.graphics.print('Unverwundbar: ' .. string.format("%.1f", game.player.invincibleTime), UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 10)
     end
 end
 
 function love.mousepressed(x, y, button)
     if button == 1 then  -- 1 ist der linke Mausbutton
-        local newState = ui:handleClick(x, y, gameState)
+        local newState = game.ui:handleClick(x, y, game.state)
         if newState == "restart" then
             love.load()
         else
-            gameState.currentState = newState
+            game.state.currentState = newState
         end
     end
 end
