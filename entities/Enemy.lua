@@ -8,16 +8,31 @@ function Enemy.new()
     self.y = 0    -- Start oben
     self.width = 40
     self.height = 40
-    self.speed = 100  -- Langsamere Geschwindigkeit als der Spieler
+    self.verticalSpeed = math.random(100, 150)  -- Langsamere Geschwindigkeit als der Spieler
+    self.horizontalSpeed = math.random(20, 80)  -- Geschwindigkeit zwischen 20 und 80
+    self.direction = math.random() < 0.5 and -1 or 1  -- Zufällige Richtung (-1 für links, 1 für rechts)
     self.health = 3   -- Feind hat 3 Leben
     self.shootCooldown = 0  -- Cooldown für das Schießen
-    self.shootChance = 0.01  -- Wahrscheinlichkeit zu schießen (je höher, desto wahrscheinlicher)
+    self.shootChance = 0.03  -- Wahrscheinlichkeit zu schießen (je höher, desto wahrscheinlicher)
     
     return self
 end
 
 function Enemy:update(dt)
-    self.y = self.y + self.speed * dt
+    -- Vertikale Bewegung
+    self.y = self.y + self.verticalSpeed * dt
+    
+    -- Horizontale Bewegung
+    self.x = self.x + self.horizontalSpeed * self.direction * dt
+    
+    -- Richtungswechsel wenn der Feind den Bildschirmrand erreicht
+    if self.x <= 0 then
+        self.x = 0
+        self.direction = 1
+    elseif self.x + self.width >= love.graphics.getWidth() then
+        self.x = love.graphics.getWidth() - self.width
+        self.direction = -1
+    end
     
     -- Zurücksetzen, wenn der Feind den Bildschirm verlässt
     if self.y > love.graphics.getHeight() then
@@ -40,7 +55,9 @@ function Enemy:reset()
     self.y = 0
     self.x = math.random(0, love.graphics.getWidth() - self.width)
     self.health = 3
-    self.shootCooldown = 1  -- Initialer Cooldown nach dem Zurücksetzen
+    self.shootCooldown = 0  -- Sofort schussbereit nach dem Erscheinen
+    self.verticalSpeed = math.random(100, 150)  -- Langsamere Geschwindigkeit als der Spieler
+    self.horizontalSpeed = math.random(20, 80)  -- Auch beim Reset zufällig
 end
 
 function Enemy:takeDamage()
