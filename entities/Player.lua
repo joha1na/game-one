@@ -72,11 +72,15 @@ end
 --[[
     Zeichnet den Spieler auf dem Bildschirm
     Implementiert einen Blitzeffekt während der Unverwundbarkeitsphase
+    Hinweis: Das Zeichnen wird jetzt vom Graphics-System übernommen
 ]]
 function Player:draw()
-    if not self.invincible or math.floor(self.flashTime * 10) % 2 == 0 then
+--[[     if not self.invincible or math.floor(self.flashTime * 10) % 2 == 0 then
         love.graphics.rectangle('fill', self.x, self.y, self.width, self.height)
-    end
+    end ]]
+    -- Diese Funktion wird für Kompatibilität beibehalten, 
+    -- aber das Zeichnen erfolgt jetzt über das Graphics-System
+    -- Der Blitzeffekt kann über Transparenz im Graphics-System implementiert werden
 end
 
 --[[
