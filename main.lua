@@ -15,6 +15,8 @@ local Enemy = require 'entities.Enemy'
 local UI = require 'entities.UI'
 local Highscore = require 'highscore'
 local UIConstants = require('constants.UI')
+local Graphics = require('graphics.Graphics') -- Neues Grafik-System
+local UIEffects = require('graphics.UIEffects') -- UI-Effekte
 
 --[[
     Prüft Kollision zwischen zwei Rechtecken
@@ -54,6 +56,11 @@ function love.load()
     game.state.currentState = "start"
     game.score = 0
     
+    -- Grafik-System initialisieren
+    Graphics.init()
+    UIEffects.init()
+    -- Audio.init()
+    
     -- Spielobjekte erstellen
     game.player = Player.new()
     game.enemy = Enemy.new()
@@ -73,6 +80,10 @@ end
     @param dt number - Delta-Zeit seit dem letzten Update
 ]]
 function love.update(dt)
+    -- Aktualisiere Grafik-System
+    Graphics.update(dt)
+    UIEffects.update(dt)
+    
     if game.state.currentState == "playing" then
         -- Aktualisiere Spieler
         game.player:update(dt)
@@ -107,8 +118,28 @@ function love.update(dt)
             local bullet = game.bullets[i]
             if checkCollision(bullet, game.enemy) then
                 table.remove(game.bullets, i)
+                -- Speichere die Position vor dem takeDamage-Aufruf
+                local enemyDeathX = game.enemy.x + game.enemy.width/2
+                local enemyDeathY = game.enemy.y + game.enemy.height/2
+                
                 if game.enemy:takeDamage() then
+                    -- Feind wurde zerstört
                     game.score = game.score + 100
+                    -- Entferne alle Explosionen, die dem alten Feind folgen
+                    Graphics.removeExplosionsForTarget(game.enemy)
+                    -- Große Todes-Explosion an der ursprünglichen Position
+                    Graphics.createExplosion(enemyDeathX, enemyDeathY, nil, true)
+                    -- Score-Animation hinzufügen
+                    UIEffects.addAnimation("scorePopup", enemyDeathX, enemyDeathY - 20, 1)
+                    -- Kurzer Screen-Shake
+                    UIEffects.startScreenShake(5, 0.1)
+                    -- Explosions-Sound abspielen
+                    -- Audio.playExplosion()
+                else
+                    -- Feind wurde nur getroffen (folgt dem Feind)
+                    Graphics.createExplosion(enemyDeathX, enemyDeathY, game.enemy)
+                    -- Treffer-Sound abspielen
+                    -- Audio.playHit()
                 end
             end
         end
@@ -118,6 +149,8 @@ function love.update(dt)
             local bullet = game.enemyBullets[i]
             if checkCollision(bullet, game.player) then
                 table.remove(game.enemyBullets, i)
+                -- Explosion bei Geschoss-Treffer (folgt dem Spieler)
+                Graphics.createExplosion(game.player.x + game.player.width/2, game.player.y + game.player.height/2, game.player)
                 if game.player:takeDamage() then
                     if game.player.health <= 0 then
                         game.state.currentState = "gameOver"
@@ -141,8 +174,17 @@ function love.update(dt)
                         Highscore.addScore(game.score)
                         game.currentHighscore = game.score
                     end
+                    -- Starker Screen-Shake bei Game Over
+                    UIEffects.startScreenShake(15, 0.5)
+                else
+                    -- Leichter Screen-Shake bei Schaden
+                    UIEffects.startScreenShake(8, 0.2)
                 end
             end
+            -- Explosion bei Kollision (folgt dem Spieler)
+            Graphics.createExplosion(game.player.x + game.player.width/2, game.player.y + game.player.height/2, game.player)
+            -- Kollisions-Screen-Shake
+            UIEffects.startScreenShake(10, 0.3)
             game.enemy:reset()
         end
         
@@ -159,28 +201,56 @@ end
     Wird in jedem Frame aufgerufen
 ]]
 function love.draw()
+    -- Screen-Shake anwenden
+    UIEffects.applyScreenShake()
+    
     if game.state.currentState == "start" then
+        -- Zeichne Hintergrund auch im Startscreen
+        Graphics.drawBackground()
         game.ui:drawStartScreen()
     elseif game.state.currentState == "playing" then
         -- Zeichne Spieler
-        game.player:draw()
+        -- game.player:draw()
+        -- Zeichne animierten Hintergrund
+        Graphics.drawBackground()
+        
+        -- Zeichne Triebwerk-Effekte für den Spieler
+        Graphics.createThrusterEffect(game.player.x + game.player.width/2, game.player.y + game.player.height)
         
         -- Zeichne Gegner
-        game.enemy:draw()
+        -- game.enemy:draw()
         
         -- Zeichne Spielergeschosse
-        love.graphics.setColor(0, 1, 0)  -- Grün
+        -- love.graphics.setColor(0, 1, 0)  -- Grün
+        -- Zeichne Spieler mit neuem Sprite (mit Blitzeffekt bei Unverwundbarkeit)
+        if not game.player.invincible or math.floor(game.player.flashTime * 10) % 2 == 0 then
+            Graphics.drawSprite('player', game.player.x, game.player.y)
+        end
+        
+        -- Zeichne Gegner mit neuem Sprite
+        Graphics.drawSprite('enemy', game.enemy.x, game.enemy.y)
+        
+        -- Zeichne Spielergeschosse mit neuen Sprites
         for _, bullet in ipairs(game.bullets) do
-            love.graphics.rectangle('fill', bullet.x, bullet.y, bullet.width, bullet.height)
+            -- love.graphics.rectangle('fill', bullet.x, bullet.y, bullet.width, bullet.height)
+            Graphics.drawSprite('playerBullet', bullet.x, bullet.y)
         end
         
         -- Zeichne Gegnergeschosse
-        love.graphics.setColor(1, 0, 0)  -- Rot
+        -- love.graphics.setColor(1, 0, 0)  -- Rot
+        -- Zeichne Gegnergeschosse mit neuen Sprites
         for _, bullet in ipairs(game.enemyBullets) do
-            love.graphics.rectangle('fill', bullet.x, bullet.y, bullet.width, bullet.height)
+            -- love.graphics.rectangle('fill', bullet.x, bullet.y, bullet.width, bullet.height)
+            Graphics.drawSprite('enemyBullet', bullet.x, bullet.y)
         end
         
-        -- Setze die Farbe zurück auf Weiß für den Text
+        -- Zeichne Partikel-Effekte (Explosionen, etc.)
+        Graphics.drawParticles()
+        
+        -- Zeichne UI-Animationen (Score-Popups, etc.)
+        UIEffects.drawAnimations()
+        
+        -- Setze die Farbe für den Text
         love.graphics.setColor(1, 1, 1)
         love.graphics.setFont(game.ui.fonts.text)
 
@@ -212,10 +282,31 @@ function love.draw()
             love.graphics.print('Unverwundbar: ' .. string.format("%.1f", game.player.invincibleTime), UIConstants.PADDING, UIConstants.START_Y + UIConstants.LINE_HEIGHT * 12)
         end
     elseif game.state.currentState == "paused" then
+        -- Zeichne Hintergrund auch im Pause-Screen
+        Graphics.drawBackground()
+        -- Zeichne das Spiel gedimmt
+        love.graphics.setColor(0.5, 0.5, 0.5, 0.7)
+        Graphics.drawSprite('player', game.player.x, game.player.y)
+        Graphics.drawSprite('enemy', game.enemy.x, game.enemy.y)
+        for _, bullet in ipairs(game.bullets) do
+            Graphics.drawSprite('playerBullet', bullet.x, bullet.y)
+        end
+        for _, bullet in ipairs(game.enemyBullets) do
+            Graphics.drawSprite('enemyBullet', bullet.x, bullet.y)
+        end
+        love.graphics.setColor(1, 1, 1, 1) -- Farbe zurücksetzen
         game.ui:drawPauseScreen()
     elseif game.state.currentState == "gameOver" then
+        -- Zeichne Hintergrund auch im Game Over Screen
+        Graphics.drawBackground()
         game.ui:drawGameOverScreen(game)
     end
+    
+    -- Screen-Shake beenden
+    UIEffects.endScreenShake()
+    
+    -- Fade-Effekt zeichnen
+    UIEffects.drawFadeEffect()
     
 
 end

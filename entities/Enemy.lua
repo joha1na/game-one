@@ -63,12 +63,14 @@ end
 
 --[[
     Zeichnet den Gegner auf dem Bildschirm
-    Verwendet rote Farbe für den Gegner
+    Hinweis: Das Zeichnen wird jetzt vom Graphics-System übernommen
 ]]
 function Enemy:draw()
-    love.graphics.setColor(1, 0, 0)  -- Rot
+--[[     love.graphics.setColor(1, 0, 0)  -- Rot
     love.graphics.rectangle('fill', self.x, self.y, self.width, self.height)
-    love.graphics.setColor(1, 1, 1)  -- Zurück zu Weiß
+    love.graphics.setColor(1, 1, 1)  -- Zurück zu Weiß ]]
+    -- Diese Funktion wird für Kompatibilität beibehalten, 
+    -- aber das Zeichnen erfolgt jetzt über das Graphics-System
 end
 
 --[[
