@@ -288,8 +288,9 @@ end
     @param x number - X-Position der Explosion
     @param y number - Y-Position der Explosion
     @param followTarget table - Objekt dem die Explosion folgen soll (optional)
+    @param isDeathExplosion boolean - Ist es eine Todes-Explosion (größer und länger)
 ]]
-function Graphics.createExplosion(x, y, followTarget)
+function Graphics.createExplosion(x, y, followTarget, isDeathExplosion)
     if followTarget then
         -- Erstelle eine bewegte Explosion
         local explosionTexture = love.graphics.newCanvas(4, 4)
@@ -315,9 +316,49 @@ function Graphics.createExplosion(x, y, followTarget)
         explosion.system:emit(25)
         table.insert(Graphics.movingExplosions, explosion)
     else
-        -- Normale statische Explosion
-        Graphics.particleSystems.explosion:setPosition(x, y)
-        Graphics.particleSystems.explosion:emit(25)
+        -- Statische Explosion
+        if isDeathExplosion then
+            -- Große Todes-Explosion
+            local explosionTexture = love.graphics.newCanvas(6, 6)
+            love.graphics.setCanvas(explosionTexture)
+            love.graphics.setColor(1, 1, 1, 1)
+            love.graphics.circle('fill', 3, 3, 3)
+            love.graphics.setCanvas()
+            
+            local deathSystem = love.graphics.newParticleSystem(explosionTexture, 64)
+            deathSystem:setParticleLifetime(0.5, 1.5)
+            deathSystem:setEmissionRate(150)
+            deathSystem:setSizeVariation(1.0)
+            deathSystem:setLinearAcceleration(-150, -150, 150, 150)
+            deathSystem:setColors(1, 1, 0, 1, 1, 0.5, 0, 1, 1, 0, 0, 0)
+            
+            local explosion = {
+                system = deathSystem,
+                target = nil,
+                startTime = love.timer.getTime(),
+                duration = 1.5
+            }
+            explosion.system:setPosition(x, y)
+            explosion.system:emit(50)
+            table.insert(Graphics.movingExplosions, explosion)
+        else
+            -- Normale kleine Explosion
+            Graphics.particleSystems.explosion:setPosition(x, y)
+            Graphics.particleSystems.explosion:emit(25)
+        end
+    end
+end
+
+--[[
+    Entfernt alle Explosionen, die einem bestimmten Ziel folgen
+    @param target table - Das Ziel, dessen Explosionen entfernt werden sollen
+]]
+function Graphics.removeExplosionsForTarget(target)
+    for i = #Graphics.movingExplosions, 1, -1 do
+        local explosion = Graphics.movingExplosions[i]
+        if explosion.target == target then
+            table.remove(Graphics.movingExplosions, i)
+        end
     end
 end
 

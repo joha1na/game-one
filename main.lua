@@ -118,17 +118,26 @@ function love.update(dt)
             local bullet = game.bullets[i]
             if checkCollision(bullet, game.enemy) then
                 table.remove(game.bullets, i)
+                -- Speichere die Position vor dem takeDamage-Aufruf
+                local enemyDeathX = game.enemy.x + game.enemy.width/2
+                local enemyDeathY = game.enemy.y + game.enemy.height/2
+                
                 if game.enemy:takeDamage() then
+                    -- Feind wurde zerstört
                     game.score = game.score + 100
-                    -- Explosion erstellen
-                    Graphics.createExplosion(game.enemy.x + game.enemy.width/2, game.enemy.y + game.enemy.height/2)
+                    -- Entferne alle Explosionen, die dem alten Feind folgen
+                    Graphics.removeExplosionsForTarget(game.enemy)
+                    -- Große Todes-Explosion an der ursprünglichen Position
+                    Graphics.createExplosion(enemyDeathX, enemyDeathY, nil, true)
                     -- Score-Animation hinzufügen
-                    UIEffects.addAnimation("scorePopup", game.enemy.x + game.enemy.width/2, game.enemy.y, 1)
+                    UIEffects.addAnimation("scorePopup", enemyDeathX, enemyDeathY - 20, 1)
                     -- Kurzer Screen-Shake
                     UIEffects.startScreenShake(5, 0.1)
                     -- Explosions-Sound abspielen
                     -- Audio.playExplosion()
                 else
+                    -- Feind wurde nur getroffen (folgt dem Feind)
+                    Graphics.createExplosion(enemyDeathX, enemyDeathY, game.enemy)
                     -- Treffer-Sound abspielen
                     -- Audio.playHit()
                 end
