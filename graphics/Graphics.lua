@@ -7,6 +7,16 @@ Graphics.sprites = {}
 Graphics.particleSystems = {}
 Graphics.movingExplosions = {}
 
+-- Particle system pools for performance optimization
+Graphics.particlePools = {
+    normal = {}, -- Pool for normal explosions
+    moving = {}, -- Pool for moving explosions
+    death = {}   -- Pool for death explosions
+}
+
+-- Pre-created textures for particle systems
+Graphics.explosionTextures = {}
+
 --[[
     Initialisiert das Grafik-System
     Erstellt einfache prozedurale Sprites
@@ -27,6 +37,9 @@ function Graphics.init()
     
     -- Initialisiere Partikel-Systeme
     Graphics.initParticleSystems()
+    
+    -- Initialisiere Partikel-Pools
+    Graphics.initParticlePools()
 end
 
 --[[
@@ -209,6 +222,100 @@ function Graphics.initParticleSystems()
 end
 
 --[[
+    Initialisiert die Partikel-Pools für bessere Performance
+    Erstellt wiederverwendbare Partikel-Systeme und Texturen
+]]
+function Graphics.initParticlePools()
+    -- Erstelle Texturen für verschiedene Explosionstypen
+    
+    -- Normale Explosion (4x4)
+    Graphics.explosionTextures.normal = love.graphics.newCanvas(4, 4)
+    love.graphics.setCanvas(Graphics.explosionTextures.normal)
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.circle('fill', 2, 2, 2)
+    love.graphics.setCanvas()
+    
+    -- Todes-Explosion (6x6)
+    Graphics.explosionTextures.death = love.graphics.newCanvas(6, 6)
+    love.graphics.setCanvas(Graphics.explosionTextures.death)
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.circle('fill', 3, 3, 3)
+    love.graphics.setCanvas()
+    
+    -- Erstelle Pools mit vorkonfigurierten Partikel-Systemen
+    local poolSize = 10 -- Anzahl der Systeme pro Pool
+    
+    -- Pool für normale bewegte Explosionen
+    for i = 1, poolSize do
+        local system = love.graphics.newParticleSystem(Graphics.explosionTextures.normal, 32)
+        system:setParticleLifetime(0.2, 0.6)
+        system:setEmissionRate(100)
+        system:setSizeVariation(1)
+        system:setLinearAcceleration(-100, -100, 100, 100)
+        system:setColors(1, 1, 0, 1, 1, 0.5, 0, 1, 1, 0, 0, 0)
+        
+        table.insert(Graphics.particlePools.moving, {
+            system = system,
+            inUse = false
+        })
+    end
+    
+    -- Pool für Todes-Explosionen
+    for i = 1, poolSize do
+        local system = love.graphics.newParticleSystem(Graphics.explosionTextures.death, 64)
+        system:setParticleLifetime(0.5, 1.5)
+        system:setEmissionRate(150)
+        system:setSizeVariation(1.0)
+        system:setLinearAcceleration(-150, -150, 150, 150)
+        system:setColors(1, 1, 0, 1, 1, 0.5, 0, 1, 1, 0, 0, 0)
+        
+        table.insert(Graphics.particlePools.death, {
+            system = system,
+            inUse = false
+        })
+    end
+    
+    love.graphics.setColor(1, 1, 1, 1) -- Farbe zurücksetzen
+end
+
+--[[
+    Holt ein wiederverwendbares Partikel-System aus dem Pool
+    @param poolType string - Typ des Pools ('moving', 'death')
+    @return table|nil - Partikel-System oder nil wenn Pool leer
+]]
+function Graphics.getPooledParticleSystem(poolType)
+    local pool = Graphics.particlePools[poolType]
+    if not pool then return nil end
+    
+    for i, entry in ipairs(pool) do
+        if not entry.inUse then
+            entry.inUse = true
+            return entry.system
+        end
+    end
+    
+    return nil -- Pool ist voll
+end
+
+--[[
+    Gibt ein Partikel-System an den Pool zurück
+    @param system userdata - Das Partikel-System
+    @param poolType string - Typ des Pools ('moving', 'death')
+]]
+function Graphics.returnToPool(system, poolType)
+    local pool = Graphics.particlePools[poolType]
+    if not pool then return end
+    
+    for i, entry in ipairs(pool) do
+        if entry.system == system then
+            entry.inUse = false
+            system:stop() -- Stoppe das System
+            return
+        end
+    end
+end
+
+--[[
     Aktualisiert animierte Grafik-Elemente
     @param dt number - Delta-Zeit seit dem letzten Update
 ]]
@@ -241,6 +348,10 @@ function Graphics.update(dt)
         
         -- Entferne abgelaufene Explosionen
         if love.timer.getTime() - explosion.startTime > explosion.duration then
+            -- Gib das Partikel-System an den Pool zurück
+            if explosion.poolType then
+                Graphics.returnToPool(explosion.system, explosion.poolType)
+            end
             table.remove(Graphics.movingExplosions, i)
         end
     end
@@ -292,25 +403,21 @@ end
 ]]
 function Graphics.createExplosion(x, y, followTarget, isDeathExplosion)
     if followTarget then
-        -- Erstelle eine bewegte Explosion
-        local explosionTexture = love.graphics.newCanvas(4, 4)
-        love.graphics.setCanvas(explosionTexture)
-        love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.circle('fill', 2, 2, 2)
-        love.graphics.setCanvas()
-        
-        local movingSystem = love.graphics.newParticleSystem(explosionTexture, 32)
-        movingSystem:setParticleLifetime(0.2, 0.6)
-        movingSystem:setEmissionRate(100)
-        movingSystem:setSizeVariation(1)
-        movingSystem:setLinearAcceleration(-100, -100, 100, 100)
-        movingSystem:setColors(1, 1, 0, 1, 1, 0.5, 0, 1, 1, 0, 0, 0)
+        -- Erstelle eine bewegte Explosion mit Pool-System
+        local movingSystem = Graphics.getPooledParticleSystem('moving')
+        if not movingSystem then
+            -- Fallback: Verwende das statische System
+            Graphics.particleSystems.explosion:setPosition(x, y)
+            Graphics.particleSystems.explosion:emit(25)
+            return
+        end
         
         local explosion = {
             system = movingSystem,
             target = followTarget,
             startTime = love.timer.getTime(),
-            duration = 1.5 -- Dauer der Explosion in Sekunden
+            duration = 1.5, -- Dauer der Explosion in Sekunden
+            poolType = 'moving' -- Für Pool-Rückgabe
         }
         explosion.system:setPosition(x, y)
         explosion.system:emit(25)
@@ -318,31 +425,27 @@ function Graphics.createExplosion(x, y, followTarget, isDeathExplosion)
     else
         -- Statische Explosion
         if isDeathExplosion then
-            -- Große Todes-Explosion
-            local explosionTexture = love.graphics.newCanvas(6, 6)
-            love.graphics.setCanvas(explosionTexture)
-            love.graphics.setColor(1, 1, 1, 1)
-            love.graphics.circle('fill', 3, 3, 3)
-            love.graphics.setCanvas()
-            
-            local deathSystem = love.graphics.newParticleSystem(explosionTexture, 64)
-            deathSystem:setParticleLifetime(0.5, 1.5)
-            deathSystem:setEmissionRate(150)
-            deathSystem:setSizeVariation(1.0)
-            deathSystem:setLinearAcceleration(-150, -150, 150, 150)
-            deathSystem:setColors(1, 1, 0, 1, 1, 0.5, 0, 1, 1, 0, 0, 0)
+            -- Große Todes-Explosion mit Pool-System
+            local deathSystem = Graphics.getPooledParticleSystem('death')
+            if not deathSystem then
+                -- Fallback: Verwende das statische System
+                Graphics.particleSystems.explosion:setPosition(x, y)
+                Graphics.particleSystems.explosion:emit(25)
+                return
+            end
             
             local explosion = {
                 system = deathSystem,
                 target = nil,
                 startTime = love.timer.getTime(),
-                duration = 1.5
+                duration = 1.5,
+                poolType = 'death' -- Für Pool-Rückgabe
             }
             explosion.system:setPosition(x, y)
             explosion.system:emit(50)
             table.insert(Graphics.movingExplosions, explosion)
         else
-            -- Normale kleine Explosion
+            -- Normale kleine Explosion (verwendet weiterhin statisches System)
             Graphics.particleSystems.explosion:setPosition(x, y)
             Graphics.particleSystems.explosion:emit(25)
         end
@@ -357,6 +460,10 @@ function Graphics.removeExplosionsForTarget(target)
     for i = #Graphics.movingExplosions, 1, -1 do
         local explosion = Graphics.movingExplosions[i]
         if explosion.target == target then
+            -- Gib das Partikel-System an den Pool zurück
+            if explosion.poolType then
+                Graphics.returnToPool(explosion.system, explosion.poolType)
+            end
             table.remove(Graphics.movingExplosions, i)
         end
     end
