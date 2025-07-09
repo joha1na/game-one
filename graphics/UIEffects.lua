@@ -161,9 +161,9 @@ function UIEffects.drawGlowText(text, x, y, color)
     color = color or {1, 1, 1, 1}
     
     -- Glow-Effekt (mehrere leicht versetzte Kopien)
-    love.graphics.setColor(color[1], color[2], color[3], 0.3)
-    for dx = -2, 2 do
-        for dy = -2, 2 do
+    love.graphics.setColor(color[1], color[2], color[3], 0.03)
+    for dx = -4, 4 do
+        for dy = -4, 4 do
             if dx ~= 0 or dy ~= 0 then
                 love.graphics.print(text, x + dx, y + dy)
             end
@@ -207,7 +207,8 @@ function UIEffects.drawButton(text, x, y, width, height, isHovered)
     local textX = x + (width - textWidth) / 2
     local textY = y + (height - textHeight) / 2
     
-    UIEffects.drawGlowText(text, textX, textY, {1, 1, 1, 1})
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.print(text, textX, textY)
     
     love.graphics.setColor(1, 1, 1, 1) -- Farbe zurücksetzen
 end
@@ -215,10 +216,10 @@ end
 --[[
     Erstellt einen Puls-Effekt für wichtige UI-Elemente
     @param time number - Aktuelle Zeit
-    @return number - Puls-Wert zwischen 0.5 und 1.0
+    @return number - Puls-Wert zwischen 0.85 und 1.15
 ]]
 function UIEffects.getPulseValue(time)
-    return 0.5 + 0.5 * math.sin(time * 3)
+    return 0.85 + 0.15 * math.sin(time * 3)
 end
 
 return UIEffects

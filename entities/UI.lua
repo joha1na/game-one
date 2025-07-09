@@ -123,7 +123,9 @@ function UI:drawStartScreen()
     UIEffects.drawGlowText(challengeText, challengeX, titleY + UIConstants.LINE_HEIGHT * 4, {0.8, 0.8, 0.8, 1})
     
     -- Zeichne den Start-Button mit Hover-Effekt
-    self:drawButton(self.startButton)
+    local mouseX, mouseY = love.mouse.getPosition()
+    local startButtonHovered = self:isPointInButton(mouseX, mouseY, self.startButton)
+    self:drawButton(self.startButton, startButtonHovered)
 end
 
 --[[
@@ -148,7 +150,9 @@ function UI:drawPauseScreen()
     UIEffects.drawGlowText(pauseText, textX, textY, {0.8, 0.8, 1, 1})
 
     love.graphics.setFont(self.fonts.text)
-    self:drawButton(self.backButton)
+    local mouseX, mouseY = love.mouse.getPosition()
+    local backButtonHovered = self:isPointInButton(mouseX, mouseY, self.backButton)
+    self:drawButton(self.backButton, backButtonHovered)
 end
 
 --[[
@@ -246,7 +250,9 @@ function UI:drawGameOverScreen(game)
     -- Neustart-Button
     self.startButton.text = "Neustart"
     self.startButton.y = love.graphics.getHeight() - love.graphics.getHeight() / 4
-    self:drawButton(self.startButton)
+    local mouseX, mouseY = love.mouse.getPosition()
+    local restartButtonHovered = self:isPointInButton(mouseX, mouseY, self.startButton)
+    self:drawButton(self.startButton, restartButtonHovered)
 end
 
 --[[
