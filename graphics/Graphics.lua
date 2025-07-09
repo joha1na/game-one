@@ -5,6 +5,7 @@ local Graphics = {}
 
 Graphics.sprites = {}
 Graphics.particleSystems = {}
+Graphics.movingExplosions = {}
 
 --[[
     Initialisiert das Grafik-System
@@ -225,6 +226,24 @@ function Graphics.update(dt)
     for _, system in pairs(Graphics.particleSystems) do
         system:update(dt)
     end
+    
+    -- Aktualisiere bewegte Explosionen
+    for i = #Graphics.movingExplosions, 1, -1 do
+        local explosion = Graphics.movingExplosions[i]
+        if explosion.target then
+            explosion.system:setPosition(
+                explosion.target.x + explosion.target.width/2,
+                explosion.target.y + explosion.target.height/2
+            )
+        end
+        
+        explosion.system:update(dt)
+        
+        -- Entferne abgelaufene Explosionen
+        if love.timer.getTime() - explosion.startTime > explosion.duration then
+            table.remove(Graphics.movingExplosions, i)
+        end
+    end
 end
 
 --[[
@@ -268,10 +287,38 @@ end
     Erstellt eine Explosion an der angegebenen Position
     @param x number - X-Position der Explosion
     @param y number - Y-Position der Explosion
+    @param followTarget table - Objekt dem die Explosion folgen soll (optional)
 ]]
-function Graphics.createExplosion(x, y)
-    Graphics.particleSystems.explosion:setPosition(x, y)
-    Graphics.particleSystems.explosion:emit(25)
+function Graphics.createExplosion(x, y, followTarget)
+    if followTarget then
+        -- Erstelle eine bewegte Explosion
+        local explosionTexture = love.graphics.newCanvas(4, 4)
+        love.graphics.setCanvas(explosionTexture)
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.circle('fill', 2, 2, 2)
+        love.graphics.setCanvas()
+        
+        local movingSystem = love.graphics.newParticleSystem(explosionTexture, 32)
+        movingSystem:setParticleLifetime(0.2, 0.6)
+        movingSystem:setEmissionRate(100)
+        movingSystem:setSizeVariation(1)
+        movingSystem:setLinearAcceleration(-100, -100, 100, 100)
+        movingSystem:setColors(1, 1, 0, 1, 1, 0.5, 0, 1, 1, 0, 0, 0)
+        
+        local explosion = {
+            system = movingSystem,
+            target = followTarget,
+            startTime = love.timer.getTime(),
+            duration = 1.5 -- Dauer der Explosion in Sekunden
+        }
+        explosion.system:setPosition(x, y)
+        explosion.system:emit(25)
+        table.insert(Graphics.movingExplosions, explosion)
+    else
+        -- Normale statische Explosion
+        Graphics.particleSystems.explosion:setPosition(x, y)
+        Graphics.particleSystems.explosion:emit(25)
+    end
 end
 
 --[[
@@ -289,9 +336,17 @@ end
 ]]
 function Graphics.drawParticles()
     love.graphics.setBlendMode('add') -- Additives Blending für Glow-Effekte
+    
+    -- Zeichne normale Partikel-Systeme
     for _, system in pairs(Graphics.particleSystems) do
         love.graphics.draw(system)
     end
+    
+    -- Zeichne bewegte Explosionen
+    for _, explosion in pairs(Graphics.movingExplosions) do
+        love.graphics.draw(explosion.system)
+    end
+    
     love.graphics.setBlendMode('alpha') -- Zurück zu normalem Blending
 end
 

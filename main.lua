@@ -140,6 +140,8 @@ function love.update(dt)
             local bullet = game.enemyBullets[i]
             if checkCollision(bullet, game.player) then
                 table.remove(game.enemyBullets, i)
+                -- Explosion bei Geschoss-Treffer (folgt dem Spieler)
+                Graphics.createExplosion(game.player.x + game.player.width/2, game.player.y + game.player.height/2, game.player)
                 if game.player:takeDamage() then
                     if game.player.health <= 0 then
                         game.state.currentState = "gameOver"
@@ -170,8 +172,8 @@ function love.update(dt)
                     UIEffects.startScreenShake(8, 0.2)
                 end
             end
-            -- Explosion bei Kollision
-            Graphics.createExplosion(game.player.x + game.player.width/2, game.player.y + game.player.height/2)
+            -- Explosion bei Kollision (folgt dem Spieler)
+            Graphics.createExplosion(game.player.x + game.player.width/2, game.player.y + game.player.height/2, game.player)
             -- Kollisions-Screen-Shake
             UIEffects.startScreenShake(10, 0.3)
             game.enemy:reset()
