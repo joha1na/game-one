@@ -13,7 +13,8 @@ highscores.json
 *.log 
 
 # Development notes
-IDEAS.md 
+IDEAS.md
+trigger_claude_workflows.txt
 
 # Test-bezogene Dateien
 /tests/coverage/
